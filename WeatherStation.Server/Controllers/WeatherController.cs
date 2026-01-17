@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using WeatherStation.Server;
 
 namespace WeatherStation.Server.Controllers;
 
