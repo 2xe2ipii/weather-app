@@ -81,3 +81,59 @@ We now have a clean, compiling backend with 0 endpoints.
 | **NuGet** | The package manager for .NET (Equivalent to **npm** in Node.js). |
 | **Program.cs** | The entry point of the backend. It sets up the server, dependency injection, and security pipeline before the app starts. |
 | **Controller** | A class that listens for HTTP requests (like `GET /api/weather`) and decides what code to run. |
+
+### 5. Creating the First Endpoint (The "Hello World")
+We manually created a Data Model and a Controller to establish a working API.
+
+**1. The Model (`WeatherForecast.cs`)**
+Defined the shape of our data.
+* **Key Concept:** We used `DateOnly` (a modern .NET type) instead of `DateTime` to strictly represent calendar dates without time components.
+* **Key Concept:** We used `string?` (Nullable String) to explicitly allow the Summary to be empty, enforcing strict Null Safety.
+
+**2. The Controller (`Controllers/WeatherController.cs`)**
+Created the endpoint that listens for requests.
+* **`[ApiController]`**: An attribute that upgrades a standard class into an API handler with built-in validation.
+* **`[Route("api/[controller]")]`**: A dynamic route template. It automatically maps the URL to the class name (e.g., `WeatherController` becomes `/api/weather`).
+* **Automatic Serialization**: We returned a C# `List<WeatherForecast>`, and .NET automatically converted it to JSON for the browser.
+
+## 🧠 6. Deep Dive: Key Technical Concepts (Q&A)
+
+### The Model (WeatherForecast.cs)
+* **Namespaces**: Act as "Surnames" for code to prevent naming collisions (e.g., `MyApp.User` vs `Google.User`).
+* **Auto-Properties (`{ get; set; }`)**: A C# shorthand that creates a private field and public access methods automatically.
+* **Nullable Types (`?`)**:
+    * **Value Types (`int`)**: Cannot be null by default. Must use `int?`.
+    * **Reference Types (`string`)**: Can physically be null, but modern .NET enforces explicit `string?` to prevent crashes.
+
+**Q: Fields vs. Properties (`{ get; set; }`)**
+* **Field (`public int X;`)**: A raw variable. **Warning:** default JSON serializers often ignore fields.
+* **Property (`public int X { get; set; }`)**: A wrapper method. Serializers look for these to generate JSON. Always use Properties for API models.
+
+**Q: Nullable Types (`int?` vs `int`)**
+* The `?` acts as a toggle for "Optional Data".
+* We used `int` (no `?`) for Temperature because a weather report *must* have a temperature.
+* We used `string?` (with `?`) for Summary because a text description is optional.
+
+**Q: Method Naming (`Get()` vs `GetWeather()`)**
+* In APIs, the `[HttpGet]` attribute controls the URL, not the method name.
+* Naming the method `Get()` is a standard convention to match the HTTP Verb, though descriptive names are also valid.
+
+**Q: Using Directives**
+* If the IDE says a `using` is unnecessary, it means the class is already visible in the current scope (either they share the same namespace, or it is globally imported).
+
+### The Controller (WeatherController.cs)
+* **`[ApiController]`**: An attribute that enforces strict HTTP rules (Automatic 400 errors, attribute routing).
+* **`ControllerBase`**: The parent class we inherit from. It provides built-in helper methods like `Ok()`, `NotFound()`, and access to `User` data.
+* **`IEnumerable`**: A generic interface for any collection (List, Array) that can be looped over.
+* **Route `[controller]`**: A dynamic token that is replaced by the class name (minus "Controller"). `WeatherController` -> `/weather`.
+
+### The Entry Point (Program.cs)
+* **The Builder**: Prepares the tools (Services) the app needs.
+* **The App**: The running instance that handles requests.
+* **`MapControllers`**: Scans the project for `[Route]` attributes and creates the URL map.
+
+---
+
+## 🛠️ 7. Code Corrections
+**Fix for WeatherController.cs:**
+The controller needs to import the Model's namespace to see `WeatherForecast`.
